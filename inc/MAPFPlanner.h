@@ -4,6 +4,8 @@
 #include "ActionModel.h"
 #include <atomic>
 #include <boost/heap/d_ary_heap.hpp>
+#include <unordered_map>
+#include <set>
 struct Node;
 struct TreeNode;
 
@@ -46,9 +48,11 @@ struct Conflict_my{
 struct TreeNode
 {
     SharedEnvironment node_env;
+    std::vector<int>deadlock;
     int cost=0;
     int focal;
     std::vector<int>path_empty;
+    int path_flag=0;
     high_handle handle;
     std::vector<std::vector<std::pair<int,int>>>solution;
     std::vector<Constraint_my>constraints;
@@ -101,7 +105,13 @@ typedef typename boost::heap::d_ary_heap<high_handle,boost::heap::arity<2>,boost
 class MAPFPlanner
 {
 public:
-    
+    std::unordered_map<string,int>deadlock;
+    std::unordered_map<int,int>group;
+    std::unordered_map<int,int>center;
+    std::map<int,std::set<std::pair<int,int>>>graph;
+    std::vector<std::vector<std::pair<int,long>>>graph2;
+    std::vector<std::vector<int>>finish_path;
+    std::vector<int>special;
     SharedEnvironment* env;
     int idx=0;
     int finish=0;
@@ -128,9 +138,11 @@ public:
     // return next states for all agents
     virtual void plan(int time_limit, std::vector<Action> & plan);
     std::vector<Action> thread_plan();
+    
     int getMinCost();
     std::vector<TreeNode> remove_node(TreeNode&p);
     void get_mid_target(int i);
+    void mid_target_warehouse(int i);
     // Start kit dummy implementation
     //std::vector<pair<int,int>>single_agent_plan(int start,int start_direct, int end,int agentid);
     //bool is_constraint(int agentid,int x,int y,int time,std::vector<Constraint_my>&constraints);
